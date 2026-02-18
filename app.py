@@ -1,26 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, session
 from models import db, Chore, User, ChoreParticipant
 import os
 
-app = Flask(__name__)
-# Cloud deployment support: Use DATABASE_URL if available, else local SQLite
-database_url = os.environ.get("DATABASE_URL", "sqlite:///chores.db")
-if database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
-app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "funky-secret-key")
+# ... (rest of imports/setup)
 
-db.init_app(app)
-
-with app.app_context():
-    db.create_all()
-    # Seed default users if empty
-    if not User.query.first():
-        db.session.add(User(name="Thiru", color="#FF6B6B")) # Red
-        db.session.add(User(name="KP", color="#4ECDC4"))    # Teal
-        db.session.add(User(name="Vicky", color="#FFE66D")) # Yellow
-        db.session.add(User(name="Arvinth", color="#FF9F43")) # Orange
-        db.session.commit()
+# DEFAULT ADMIN PASSWORD
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "maamaa")
 
 @app.route("/")
 def index():
@@ -28,8 +13,47 @@ def index():
     users = User.query.all()
     return render_template("index.html", chores=chores, users=users)
 
+@app.route("/login_page")
+def login_page():
+    return """
+    <html>
+        <head>
+            <link rel="stylesheet" href="/static/style.css">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="text-align: center; padding-top: 50px;">
+            <div class="container">
+                <div class="funky-card">
+                    <h2>Admin Access</h2>
+                    <form action="/login" method="POST">
+                        <input type="password" name="password" class="funky-input" placeholder="Enter Magic Word" required>
+                        <button type="submit" class="funky-btn">Unknown Super Power</button>
+                    </form>
+                    <br>
+                    <a href="/">Back to Safety</a>
+                </div>
+            </div>
+        </body>
+    </html>
+    """
+
+@app.route("/login", methods=["POST"])
+def login():
+    password = request.form.get("password")
+    if password == ADMIN_PASSWORD:
+        session['is_admin'] = True
+    return redirect(url_for("index"))
+
+@app.route("/logout")
+def logout():
+    session.pop('is_admin', None)
+    return redirect(url_for("index"))
+
 @app.route("/add_user", methods=["POST"])
 def add_user():
+    if not session.get('is_admin'):
+        return redirect(url_for("login_page"))
+        
     name = request.form.get("name")
     color = request.form.get("color", "#000000")
     if name:
@@ -39,17 +63,14 @@ def add_user():
 
 @app.route("/add_chore", methods=["POST"])
 def add_chore():
+    if not session.get('is_admin'):
+        return redirect(url_for("login_page"))
+
     title = request.form.get("title")
     points = request.form.get("points", type=int, default=10)
     participant_ids = request.form.getlist("participants")
     
     if title and participant_ids:
-        # 1. Create Chore
-        # 2. Add participants with order based on selection order (or default 0 and let them reorder)
-        # We'll rely on the order of checkboxes in the list if the user checks them? 
-        # HTML form behavior on checkboxes usually preserves order if they are separate inputs? 
-        # Actually `getlist` returns them in order of appearance in DOM usually.
-        
         assigned_user = User.query.get(participant_ids[0])
         
         new_chore = Chore(
@@ -71,6 +92,9 @@ def add_chore():
 
 @app.route("/complete/<int:chore_id>", methods=["POST"])
 def complete_chore(chore_id):
+    if not session.get('is_admin'):
+        return redirect(url_for("login_page"))
+
     chore = Chore.query.get_or_404(chore_id)
     
     if chore.is_recurring and chore.participants_association:
@@ -103,6 +127,9 @@ def complete_chore(chore_id):
 
 @app.route("/reorder_chore/<int:chore_id>", methods=["POST"])
 def reorder_chore(chore_id):
+    if not session.get('is_admin'):
+        return jsonify({"error": "Unauthorized"}), 403
+
     data = request.json
     new_order_ids = data.get("user_ids", []) # List of user IDs in new order
     

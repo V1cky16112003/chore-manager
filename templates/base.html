@@ -11,8 +11,19 @@
 <body>
     <header class="funky-header">
         <div class="container">
-            <h1 class="funky-title">PORTOBELLO GARROW HOUSE MAAMAA</h1>
+            <h1 class="funky-title">PORTOBELLO GARROW HOUSE <span class="funky-maamaa">MAAMAA</span></h1>
             <p><strong>santhoshama vaanga KP bathroom laa kaii adichitu pongaa</strong></p>
+
+            <!-- Admin Toggle -->
+            <div style="margin-top: 1rem;">
+                {% if session.get('is_admin') %}
+                <a href="/logout" class="funky-btn"
+                    style="background: black; font-size: 0.8rem; text-decoration: none;">Logout (Admin Mode)</a>
+                {% else %}
+                <a href="/login_page" class="funky-btn"
+                    style="background: white; color: black; font-size: 0.8rem; text-decoration: none;">Admin Access</a>
+                {% endif %}
+            </div>
         </div>
     </header>
 

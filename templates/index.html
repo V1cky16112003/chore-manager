@@ -4,7 +4,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 
-<!-- 1. CURRENT TASKS (Move to Top) -->
+<!-- 1. CURRENT TASKS (Top) -->
 <h2 class="funky-title" style="font-size: 2rem; margin: 0 0 1.5rem; color: var(--text-color);">Current Tasks</h2>
 
 <div class="chore-grid" style="margin-bottom: 4rem;">
@@ -25,7 +25,7 @@
         <div class="rotation-visual">
             <p
                 style="font-size: 0.8rem; font-weight: bold; text-transform: uppercase; color: #666; margin-bottom: 0.5rem;">
-                Rotation Order (Drag to Reorder):
+                Rotation Order {% if session.get('is_admin') %}(Drag to Reorder){% endif %}:
             </p>
             <div id="sortable-{{ chore.id }}" class="sortable-list" data-chore-id="{{ chore.id }}">
                 {% for p in chore.participants_association %}
@@ -41,6 +41,8 @@
             </div>
         </div>
 
+        <!-- Admin Only: Mark Done -->
+        {% if session.get('is_admin') %}
         <form action="{{ url_for('complete_chore', chore_id=chore.id) }}" method="POST" style="margin-top: 1.5rem;">
             <button class="funky-btn"
                 style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
@@ -48,6 +50,7 @@
                 <span>➜</span>
             </button>
         </form>
+        {% endif %}
     </div>
     {% else %}
     <div class="funky-card">
@@ -57,7 +60,8 @@
     {% endfor %}
 </div>
 
-<!-- 2. ADD NEW TASK (Move to Bottom) -->
+<!-- 2. ADD NEW TASK (Admin Only) -->
+{% if session.get('is_admin') %}
 <div class="funky-card" style="background-color: var(--secondary-color); border-width: 4px;">
     <div class="funky-header-small">
         <h2 style="margin: 0;">Add New Task</h2>
@@ -88,7 +92,7 @@
     </form>
 </div>
 
-<!-- 3. USER MANAGEMENT (Bottom) -->
+<!-- 3. USER MANAGEMENT (Admin Only) -->
 <details class="funky-card" style="background-color: #eee;">
     <summary style="font-weight: bold; cursor: pointer; list-style: none;">+ Manage Household Members</summary>
     <form action="/add_user" method="POST" style="margin-top: 1rem; display: flex; gap: 1rem;">
@@ -98,6 +102,7 @@
         <button type="submit" class="funky-btn" style="background: black;">Add</button>
     </form>
 </details>
+{% endif %}
 
 <script>
     // Scroll Persistence Logic
@@ -110,7 +115,8 @@
         localStorage.setItem('scrollpos', window.scrollY);
     };
 
-    // SortableJS Logic
+    // SortableJS Logic (Only if Admin)
+    {% if session.get('is_admin') %}
     document.addEventListener('DOMContentLoaded', function () {
         var lists = document.querySelectorAll('.sortable-list');
         lists.forEach(function (list) {
@@ -139,6 +145,7 @@
             });
         });
     });
+    {% endif %}
 </script>
 
 <style>
@@ -157,17 +164,39 @@
         padding: 5px 10px;
         border: 2px solid black;
         font-weight: bold;
-        cursor: grab;
+
+        cursor: {
+            % if session.get('is_admin') %
+        }
+
+        grab {
+            % else %
+        }
+
+        default {
+            % endif %
+        }
+
+        ;
         user-select: none;
         background: white;
-        transition: transform 0.1s, box-shadow 0.1s;
+        transition: transform 0.1s,
+        box-shadow 0.1s;
         display: flex;
         align-items: center;
+    }
+
+        {
+        % if session.get('is_admin') %
     }
 
     .participant-item:active {
         cursor: grabbing;
         transform: scale(1.05);
+    }
+
+        {
+        % endif %
     }
 
     .participant-item.active {

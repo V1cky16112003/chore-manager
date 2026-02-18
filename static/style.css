@@ -44,8 +44,21 @@ h3 {
 .funky-title {
     font-size: 3rem;
     margin: 0;
-    color: white;
-    text-shadow: 3px 3px 0px var(--shadow-color);
+    color: black;
+    text-shadow: 3px 3px 0px white;
+}
+
+.funky-maamaa {
+    color: var(--accent-color);
+    display: inline-block;
+    font-weight: 900;
+    text-shadow: 3px 3px 0px black;
+    transform: rotate(-3deg);
+    padding: 0 5px;
+    border: 3px solid black;
+    background: white;
+    /* Funky animation */
+    animation: shake 3s infinite;
 }
 
 .funky-card {
