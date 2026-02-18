@@ -24,7 +24,7 @@ with app.app_context():
 
 @app.route("/")
 def index():
-    chores = Chore.query.filter_by(status="pending").all()
+    chores = Chore.query.filter_by(status="pending").order_by(Chore.id).all()
     users = User.query.all()
     return render_template("index.html", chores=chores, users=users)
 
