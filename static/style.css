@@ -12,13 +12,7 @@
 
 body {
     font-family: 'Courier New', Courier, monospace;
-    /* Space Parallax Background */
-    background-image: url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=2048&auto=format&fit=crop');
-    background-size: cover;
-    background-attachment: fixed;
-    background-position: center;
-    background-repeat: no-repeat;
-
+    background-color: var(--bg-color);
     color: var(--text-color);
     margin: 0;
     padding: 20px;
@@ -30,9 +24,6 @@ h2,
 h3 {
     text-transform: uppercase;
     letter-spacing: -2px;
-    color: white;
-    text-shadow: 3px 3px 0px black;
-    /* Fix shadow contrast */
 }
 
 .container {
@@ -46,10 +37,8 @@ h3 {
     padding: 1rem;
     border: 4px solid var(--border-color);
     box-shadow: 8px 8px 0px var(--shadow-color);
-    background-color: rgba(255, 230, 109, 0.9);
-    /* Slight transparency */
+    background-color: var(--tertiary-color);
     color: var(--card-text);
-    backdrop-filter: blur(5px);
 }
 
 .funky-title {
