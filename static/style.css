@@ -1,167 +1,143 @@
 :root {
-    --color-bg: #fffbf0;
-    /* Off-white background */
-    --color-text: #050505;
-    --color-primary: #FF6B6B;
-    /* Red/Pink */
-    --color-secondary: #4ECDC4;
-    /* Teal */
-    --color-accent: #FFE66D;
-    /* Yellow */
-    --color-border: #000000;
-
-    --border-width: 3px;
-    --shadow-offset: 4px;
-
-    --font-family: system-ui, -apple-system, sans-serif;
-}
-
-* {
-    box-sizing: border-box;
-    padding: 0;
-    margin: 0;
+    --bg-color: #1a1a1a;
+    --text-color: #f0f0f0;
+    --card-bg: #ffffff;
+    --card-text: #000000;
+    --accent-color: #FF6B6B;
+    --secondary-color: #4ECDC4;
+    --tertiary-color: #FFE66D;
+    --border-color: #000000;
+    --shadow-color: #000000;
 }
 
 body {
-    background-color: var(--color-bg);
-    color: var(--color-text);
-    font-family: var(--font-family);
-    overflow-x: hidden;
+    font-family: 'Courier New', Courier, monospace;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    line-height: 1.6;
 }
 
-/* Neo-Brutalist Components */
+h1,
+h2,
+h3 {
+    text-transform: uppercase;
+    letter-spacing: -2px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+}
 
 .funky-header {
-    border-bottom: var(--border-width) solid var(--color-border);
-    padding: 2rem;
+    text-align: center;
     margin-bottom: 2rem;
-    background: white;
-}
-
-.funky-header-small {
-    border-bottom: var(--border-width) solid var(--color-border);
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
+    padding: 1rem;
+    border: 4px solid var(--border-color);
+    box-shadow: 8px 8px 0px var(--shadow-color);
+    background-color: var(--tertiary-color);
+    color: var(--card-text);
 }
 
 .funky-title {
     font-size: 3rem;
-    text-transform: uppercase;
-    line-height: 1;
     margin: 0;
-}
-
-.highlight {
-    color: var(--color-primary);
-    background: black;
-    padding: 0 10px;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
+    text-shadow: 3px 3px 0px white;
 }
 
 .funky-card {
-    background: white;
-    border: var(--border-width) solid var(--color-border);
-    box-shadow: var(--shadow-offset) var(--shadow-offset) 0px var(--color-border);
+    background-color: var(--card-bg);
+    color: var(--card-text);
+    border: 3px solid var(--border-color);
+    box-shadow: 6px 6px 0px var(--shadow-color);
     padding: 1.5rem;
-    margin: 1rem 0;
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    margin-bottom: 2rem;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .funky-card:hover {
     transform: translate(-2px, -2px);
-    box-shadow: calc(var(--shadow-offset) + 2px) calc(var(--shadow-offset) + 2px) 0px var(--color-border);
+    box-shadow: 10px 10px 0px var(--shadow-color);
 }
 
 .funky-btn {
-    background: var(--color-primary);
+    background-color: var(--accent-color);
     color: white;
-    font-weight: bold;
-    border: var(--border-width) solid var(--color-border);
-    box-shadow: var(--shadow-offset) var(--shadow-offset) 0px var(--color-border);
-    padding: 0.75rem 1.5rem;
-    cursor: pointer;
-    text-transform: uppercase;
-    font-size: 1rem;
-    display: inline-block;
-    text-decoration: none;
+    border: 3px solid var(--border-color);
+    padding: 10px 20px;
     font-family: inherit;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 4px 4px 0px var(--shadow-color);
+    transition: all 0.1s;
 }
 
 .funky-btn:active {
-    transform: translate(var(--shadow-offset), var(--shadow-offset));
-    box-shadow: 0px 0px 0px var(--color-border);
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px var(--shadow-color);
 }
 
-.funky-input,
-.funky-select {
-    width: 100%;
+.funky-input {
+    border: 3px solid var(--border-color);
     padding: 10px;
-    border: var(--border-width) solid var(--color-border);
-    background: #eee;
-    font-size: 1rem;
-    margin-bottom: 1rem;
     font-family: inherit;
-}
-
-.funky-input:focus {
-    outline: none;
-    background: white;
-    box-shadow: 4px 4px 0px var(--color-border);
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+    background: #fff;
 }
 
 .chore-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 3rem;
-    /* Increased gap for highlights */
-    padding-top: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.participant-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
 }
 
 .badge {
-    background: black;
-    color: white;
-    padding: 5px 10px;
+    display: inline-block;
+    padding: 3px 8px;
+    border: 2px solid black;
     font-weight: bold;
     font-size: 0.8rem;
+    color: white;
 }
 
-/* Extras for Round Robin */
-.participant-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+/* Animations */
+@keyframes shake {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(2deg);
+    }
+
+    75% {
+        transform: rotate(-2deg);
+    }
+
+    100% {
+        transform: rotate(0deg);
+    }
 }
 
-.funky-checkbox-label {
-    padding: 5px 10px;
-    border: 2px solid black;
-    cursor: pointer;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+.highlight {
+    background-color: var(--secondary-color);
+    padding: 0 5px;
+    color: black;
 }
 
-.rotation-visual {
-    margin-top: 1rem;
-}
-
-.participant-dot {
-    width: 20px;
-    height: 20px;
-    border: 2px solid black;
-    border-radius: 50%;
-    opacity: 0.3;
-}
-
-.participant-dot.active {
-    opacity: 1;
-    transform: scale(1.2);
-    border-width: 3px;
-    box-shadow: 2px 2px 0px black;
+/* Dark Mode Specific Overrides for Inputs */
+summary {
+    color: var(--card-text);
+    /* Ensure summary is visible inside card */
 }

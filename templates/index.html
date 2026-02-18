@@ -4,50 +4,10 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 
-<!-- Action Bar / Add Task -->
-<div class="funky-card" style="background-color: var(--color-accent); border-width: 4px;">
-    <div class="funky-header-small">
-        <h2>Add New Task</h2>
-        <p>Who's doing what?</p>
-    </div>
-    <form action="/add_chore" method="POST" style="margin-top: 1rem;">
-        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-            <input type="text" name="title" class="funky-input" placeholder="Task Name (e.g. Wash Dishes)" required
-                style="flex: 2;">
-            <input type="number" name="points" class="funky-input" placeholder="Points" value="10"
-                style="width: 100px; flex: 0 0 100px;">
-        </div>
+<!-- 1. CURRENT TASKS (Move to Top) -->
+<h2 class="funky-title" style="font-size: 2rem; margin: 0 0 1.5rem; color: var(--text-color);">Current Tasks</h2>
 
-        <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Select Rotation Participants (Check in
-            order):</label>
-        <div class="participant-grid">
-            {% for user in users %}
-            <label class="funky-checkbox-label"
-                style="background-color: {{ user.color }}20; border-color: {{ user.color }}">
-                <input type="checkbox" name="participants" value="{{ user.id }}">
-                {{ user.name }}
-            </label>
-            {% endfor %}
-        </div>
-
-        <button type="submit" class="funky-btn" style="margin-top: 1rem;">Add to Rotation</button>
-    </form>
-</div>
-
-<!-- User Management -->
-<details class="funky-card" style="background-color: #eee;">
-    <summary style="font-weight: bold; cursor: pointer; list-style: none;">+ Manage Household Members</summary>
-    <form action="/add_user" method="POST" style="margin-top: 1rem; display: flex; gap: 1rem;">
-        <input type="text" name="name" class="funky-input" placeholder="Name" required>
-        <input type="color" name="name" value="#FF6B6B"
-            style="height: 45px; width: 50px; border: 3px solid black; padding: 0;">
-        <button type="submit" class="funky-btn" style="background: black;">Add</button>
-    </form>
-</details>
-
-<h2 class="funky-title" style="font-size: 2rem; margin: 2rem 0 1rem;">Current Tasks</h2>
-
-<div class="chore-grid">
+<div class="chore-grid" style="margin-bottom: 4rem;">
     {% for chore in chores %}
     <div class="funky-card" style="background-color: white; position: relative;">
         <!-- Highlight/Badge -->
@@ -57,7 +17,7 @@
         </div>
 
         <div style="border-bottom: 3px solid black; padding-bottom: 10px; margin-bottom: 10px;">
-            <h3 style="font-size: 1.5rem;">{{ chore.title }}</h3>
+            <h3 style="font-size: 1.5rem; margin-top: 0;">{{ chore.title }}</h3>
             <span class="badge" style="background: black;">{{ chore.points }} XP</span>
         </div>
 
@@ -92,12 +52,65 @@
     {% else %}
     <div class="funky-card">
         <h3>No chores!</h3>
-        <p>You're all caught up. Add some tasks above!</p>
+        <p>You're all caught up.</p>
     </div>
     {% endfor %}
 </div>
 
+<!-- 2. ADD NEW TASK (Move to Bottom) -->
+<div class="funky-card" style="background-color: var(--secondary-color); border-width: 4px;">
+    <div class="funky-header-small">
+        <h2 style="margin: 0;">Add New Task</h2>
+        <p style="margin: 0;">Who's doing what?</p>
+    </div>
+    <form action="/add_chore" method="POST" style="margin-top: 1rem;">
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <input type="text" name="title" class="funky-input" placeholder="Task Name (e.g. Wash Dishes)" required
+                style="flex: 2;">
+            <input type="number" name="points" class="funky-input" placeholder="Points" value="10"
+                style="width: 100px; flex: 0 0 100px;">
+        </div>
+
+        <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Select Rotation Participants (Check in
+            order):</label>
+        <div class="participant-grid">
+            {% for user in users %}
+            <label class="funky-checkbox-label"
+                style="background-color: white; border: 2px solid black; padding: 5px; display: block; cursor: pointer;">
+                <input type="checkbox" name="participants" value="{{ user.id }}">
+                <span style="font-weight: bold; color: {{ user.color }};">{{ user.name }}</span>
+            </label>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="funky-btn" style="margin-top: 1rem; background: black; color: white;">Add to
+            Rotation</button>
+    </form>
+</div>
+
+<!-- 3. USER MANAGEMENT (Bottom) -->
+<details class="funky-card" style="background-color: #eee;">
+    <summary style="font-weight: bold; cursor: pointer; list-style: none;">+ Manage Household Members</summary>
+    <form action="/add_user" method="POST" style="margin-top: 1rem; display: flex; gap: 1rem;">
+        <input type="text" name="name" class="funky-input" placeholder="Name" required>
+        <input type="color" name="name" value="#FF6B6B"
+            style="height: 45px; width: 50px; border: 3px solid black; padding: 0;">
+        <button type="submit" class="funky-btn" style="background: black;">Add</button>
+    </form>
+</details>
+
 <script>
+    // Scroll Persistence Logic
+    document.addEventListener("DOMContentLoaded", function (event) {
+        var scrollpos = localStorage.getItem('scrollpos');
+        if (scrollpos) window.scrollTo(0, scrollpos);
+    });
+
+    window.onbeforeunload = function (e) {
+        localStorage.setItem('scrollpos', window.scrollY);
+    };
+
+    // SortableJS Logic
     document.addEventListener('DOMContentLoaded', function () {
         var lists = document.querySelectorAll('.sortable-list');
         lists.forEach(function (list) {
@@ -108,29 +121,19 @@
                     var listEl = itemEl.parentElement;
                     var choreId = listEl.getAttribute('data-chore-id');
 
-                    // Get new order
                     var userIds = Array.from(listEl.children).map(function (child) {
                         return child.getAttribute('data-user-id');
                     });
 
-                    // Send to Server
                     fetch('/reorder_chore/' + choreId, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ user_ids: userIds }),
                     })
                         .then(response => response.json())
                         .then(data => {
                             console.log('Order updated:', data);
-                            // Optional: Reload to update numbers, though Sortable updates DOM visual
-                            // To update numbers specifically (1, 2, 3), we could re-render or reload.
-                            // Simple reload for correctness:
                             location.reload();
-                        })
-                        .catch((error) => {
-                            console.error('Error:', error);
                         });
                 }
             });
@@ -175,7 +178,6 @@
         position: relative;
     }
 
-    /* Ghost class for SortableJS */
     .sortable-ghost {
         opacity: 0.4;
         background: #ccc;
