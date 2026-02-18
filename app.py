@@ -4,6 +4,26 @@ import os
 
 # ... (rest of imports/setup)
 
+app = Flask(__name__)
+# Cloud deployment support: Use DATABASE_URL if available, else local SQLite
+database_url = os.environ.get("DATABASE_URL", "sqlite:///chores.db")
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "funky-secret-key")
+
+db.init_app(app)
+
+with app.app_context():
+    db.create_all()
+    # Seed default users if empty
+    if not User.query.first():
+        db.session.add(User(name="Thiru", color="#FF6B6B")) # Red
+        db.session.add(User(name="KP", color="#4ECDC4"))    # Teal
+        db.session.add(User(name="Vicky", color="#FFE66D")) # Yellow
+        db.session.add(User(name="Arvinth", color="#FF9F43")) # Orange
+        db.session.commit()
+
 # DEFAULT ADMIN PASSWORD
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "maamaa")
 
