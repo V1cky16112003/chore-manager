@@ -44,7 +44,7 @@ h3 {
 .funky-title {
     font-size: 3rem;
     margin: 0;
-    text-shadow: 3px 3px 0px white;
+    text-shadow: 3px 3px 0px var(--shadow-color);
 }
 
 .funky-card {
