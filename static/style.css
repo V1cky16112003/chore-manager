@@ -1,0 +1,167 @@
+:root {
+    --color-bg: #fffbf0;
+    /* Off-white background */
+    --color-text: #050505;
+    --color-primary: #FF6B6B;
+    /* Red/Pink */
+    --color-secondary: #4ECDC4;
+    /* Teal */
+    --color-accent: #FFE66D;
+    /* Yellow */
+    --color-border: #000000;
+
+    --border-width: 3px;
+    --shadow-offset: 4px;
+
+    --font-family: system-ui, -apple-system, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-family);
+    overflow-x: hidden;
+}
+
+/* Neo-Brutalist Components */
+
+.funky-header {
+    border-bottom: var(--border-width) solid var(--color-border);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    background: white;
+}
+
+.funky-header-small {
+    border-bottom: var(--border-width) solid var(--color-border);
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+
+.funky-title {
+    font-size: 3rem;
+    text-transform: uppercase;
+    line-height: 1;
+    margin: 0;
+}
+
+.highlight {
+    color: var(--color-primary);
+    background: black;
+    padding: 0 10px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.funky-card {
+    background: white;
+    border: var(--border-width) solid var(--color-border);
+    box-shadow: var(--shadow-offset) var(--shadow-offset) 0px var(--color-border);
+    padding: 1.5rem;
+    margin: 1rem 0;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.funky-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: calc(var(--shadow-offset) + 2px) calc(var(--shadow-offset) + 2px) 0px var(--color-border);
+}
+
+.funky-btn {
+    background: var(--color-primary);
+    color: white;
+    font-weight: bold;
+    border: var(--border-width) solid var(--color-border);
+    box-shadow: var(--shadow-offset) var(--shadow-offset) 0px var(--color-border);
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-size: 1rem;
+    display: inline-block;
+    text-decoration: none;
+    font-family: inherit;
+}
+
+.funky-btn:active {
+    transform: translate(var(--shadow-offset), var(--shadow-offset));
+    box-shadow: 0px 0px 0px var(--color-border);
+}
+
+.funky-input,
+.funky-select {
+    width: 100%;
+    padding: 10px;
+    border: var(--border-width) solid var(--color-border);
+    background: #eee;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    font-family: inherit;
+}
+
+.funky-input:focus {
+    outline: none;
+    background: white;
+    box-shadow: 4px 4px 0px var(--color-border);
+}
+
+.chore-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 3rem;
+    /* Increased gap for highlights */
+    padding-top: 1rem;
+}
+
+.badge {
+    background: black;
+    color: white;
+    padding: 5px 10px;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+/* Extras for Round Robin */
+.participant-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.funky-checkbox-label {
+    padding: 5px 10px;
+    border: 2px solid black;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.rotation-visual {
+    margin-top: 1rem;
+}
+
+.participant-dot {
+    width: 20px;
+    height: 20px;
+    border: 2px solid black;
+    border-radius: 50%;
+    opacity: 0.3;
+}
+
+.participant-dot.active {
+    opacity: 1;
+    transform: scale(1.2);
+    border-width: 3px;
+    box-shadow: 2px 2px 0px black;
+}
