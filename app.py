@@ -1,12 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session
-from models import db, Chore, User, ChoreParticipant
+from models import db, Chore, User, ChoreParticipant, MenuItem
 import os
 
 # ... (rest of imports/setup)
 
 app = Flask(__name__)
 # Cloud deployment support: Use DATABASE_URL if available, else local SQLite
-database_url = os.environ.get("DATABASE_URL", "sqlite:///chores.db")
+basedir = os.path.abspath(os.path.dirname(__file__))
+database_url = os.environ.get("DATABASE_URL", "sqlite:///" + os.path.join(basedir, "chores.db"))
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
@@ -27,11 +28,23 @@ with app.app_context():
 # DEFAULT ADMIN PASSWORD
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "maamaa")
 
+DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+MEALS = ["Lunch", "Dinner"]
+
 @app.route("/")
 def index():
     chores = Chore.query.filter_by(status="pending").order_by(Chore.id).all()
     users = User.query.all()
-    return render_template("index.html", chores=chores, users=users)
+    
+    # Build menu grid: {day: {meal_type: MenuItem}}
+    menu = {}
+    for day in DAYS:
+        menu[day] = {}
+        for meal in MEALS:
+            item = MenuItem.query.filter_by(day=day, meal_type=meal).first()
+            menu[day][meal] = item
+    
+    return render_template("index.html", chores=chores, users=users, menu=menu, days=DAYS, meals=MEALS)
 
 @app.route("/login_page")
 def login_page():
@@ -164,6 +177,37 @@ def reorder_chore(chore_id):
             
     db.session.commit()
     return jsonify({"status": "success"})
+
+@app.route("/set_menu", methods=["POST"])
+def set_menu():
+    if not session.get('is_admin'):
+        return redirect(url_for("login_page"))
+    
+    for day in DAYS:
+        for meal in MEALS:
+            field_name = f"{day}_{meal}"
+            food_name = request.form.get(field_name, "").strip()
+            
+            item = MenuItem.query.filter_by(day=day, meal_type=meal).first()
+            if item:
+                item.food_name = food_name
+                item.is_cooked = False  # Reset when menu is updated
+            else:
+                item = MenuItem(day=day, meal_type=meal, food_name=food_name)
+                db.session.add(item)
+    
+    db.session.commit()
+    return redirect(url_for("index"))
+
+@app.route("/toggle_cooked/<int:item_id>", methods=["POST"])
+def toggle_cooked(item_id):
+    if not session.get('is_admin'):
+        return redirect(url_for("login_page"))
+    
+    item = MenuItem.query.get_or_404(item_id)
+    item.is_cooked = not item.is_cooked
+    db.session.commit()
+    return redirect(url_for("index"))
 
 if __name__ == "__main__":
     app.run(debug=True)

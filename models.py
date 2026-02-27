@@ -53,3 +53,11 @@ class Chore(db.Model):
     @property
     def participants(self):
         return [p.user for p in self.participants_association]
+
+class MenuItem(db.Model):
+    __tablename__ = "menu_item"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    day: Mapped[str] = mapped_column(String, nullable=False)  # Monday, Tuesday, etc.
+    meal_type: Mapped[str] = mapped_column(String, nullable=False)  # Lunch or Dinner
+    food_name: Mapped[str] = mapped_column(String, default="")
+    is_cooked: Mapped[bool] = mapped_column(Boolean, default=False)
