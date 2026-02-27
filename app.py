@@ -17,6 +17,17 @@ db.init_app(app)
 
 with app.app_context():
     db.create_all()
+    
+    # Auto-migration: Add new columns to existing tables (Postgres doesn't auto-add them)
+    from sqlalchemy import text, inspect
+    with db.engine.connect() as conn:
+        inspector = inspect(db.engine)
+        # Add display_order to chore table if missing
+        if 'chore' in inspector.get_table_names():
+            columns = [c['name'] for c in inspector.get_columns('chore')]
+            if 'display_order' not in columns:
+                conn.execute(text('ALTER TABLE chore ADD COLUMN display_order INTEGER DEFAULT 0'))
+                conn.commit()
     # Seed default users if empty
     if not User.query.first():
         db.session.add(User(name="Thiru", color="#FF6B6B")) # Red
