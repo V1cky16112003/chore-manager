@@ -42,6 +42,9 @@ class Chore(db.Model):
     # Round Robin Logic
     is_recurring: Mapped[bool] = mapped_column(Boolean, default=False)
     
+    # Display order for drag reordering
+    display_order: Mapped[int] = mapped_column(Integer, default=0)
+    
     # Relationship to association model
     participants_association: Mapped[List["ChoreParticipant"]] = relationship(
         "ChoreParticipant", 

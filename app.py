@@ -33,7 +33,7 @@ MEALS = ["Lunch", "Dinner"]
 
 @app.route("/")
 def index():
-    chores = Chore.query.filter_by(status="pending").order_by(Chore.id).all()
+    chores = Chore.query.filter_by(status="pending").order_by(Chore.display_order, Chore.id).all()
     users = User.query.all()
     
     # Build menu grid: {day: {meal_type: MenuItem}}
@@ -106,11 +106,14 @@ def add_chore():
     if title and participant_ids:
         assigned_user = User.query.get(participant_ids[0])
         
+        # Set display_order to max+1
+        max_order = db.session.query(db.func.max(Chore.display_order)).scalar() or 0
         new_chore = Chore(
             title=title, 
             points=points, 
             assigned_to=assigned_user,
-            is_recurring=True
+            is_recurring=True,
+            display_order=max_order + 1
         )
         db.session.add(new_chore)
         db.session.flush() # Get ID
@@ -175,6 +178,22 @@ def reorder_chore(chore_id):
         if assoc:
             assoc.rotation_order = idx
             
+    db.session.commit()
+    return jsonify({"status": "success"})
+
+@app.route("/reorder_tasks", methods=["POST"])
+def reorder_tasks():
+    if not session.get('is_admin'):
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    data = request.json
+    chore_ids = data.get("chore_ids", [])
+    
+    for idx, cid in enumerate(chore_ids):
+        chore = Chore.query.get(int(cid))
+        if chore:
+            chore.display_order = idx
+    
     db.session.commit()
     return jsonify({"status": "success"})
 

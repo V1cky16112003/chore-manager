@@ -4,161 +4,223 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 
-<!-- 1. CURRENT TASKS (Top) -->
-<h2 class="funky-title" style="font-size: 2rem; margin: 0 0 1.5rem; color: white; text-shadow: none;">Current Tasks</h2>
-
-<div class="chore-grid" style="margin-bottom: 4rem;">
-    {% for chore in chores %}
-    <div class="funky-card" style="background-color: white; position: relative;">
-        <div style="position: absolute; top: -10px; right: -10px; background: {{ chore.assigned_to.color }}; border: 3px solid black; padding: 5px 10px; font-weight: bold; transform: rotate(3deg);">
-            Up Next: {{ chore.assigned_to.name }}
-        </div>
-
-        <div style="border-bottom: 3px solid black; padding-bottom: 10px; margin-bottom: 10px;">
-            <h3 style="font-size: 1.5rem; margin-top: 0;">{{ chore.title }}</h3>
-            <span class="badge" style="background: black;">{{ chore.points }} XP</span>
-        </div>
-
-        <div class="rotation-visual">
-            <p style="font-size: 0.8rem; font-weight: bold; text-transform: uppercase; color: #666; margin-bottom: 0.5rem;">
-                Rotation Order {% if session.get('is_admin') %}(Drag to Reorder){% endif %}:
-            </p>
-            <div id="sortable-{{ chore.id }}" class="sortable-list" data-chore-id="{{ chore.id }}">
-                {% for p in chore.participants_association %}
-                <div class="participant-item {% if p.user_id == chore.assigned_to_id %}active{% endif %}"
-                    data-user-id="{{ p.user_id }}" style="background-color: {{ p.user.color }}; border-color: black;">
-                    <span style="background: black; color: white; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; justify-content: center; align-items: center; font-size: 0.7rem; margin-right: 5px;">
-                        {{ loop.index }}
-                    </span>
-                    {{ p.user.name }}
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        {% if session.get('is_admin') %}
-        <form action="{{ url_for('complete_chore', chore_id=chore.id) }}" method="POST" style="margin-top: 1.5rem;">
-            <button class="funky-btn" style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
-                <span>Mark Done</span>
-                <span>➜</span>
-            </button>
-        </form>
-        {% endif %}
-    </div>
-    {% else %}
-    <div class="funky-card">
-        <h3>No chores!</h3>
-        <p>You're all caught up.</p>
-    </div>
-    {% endfor %}
+<!-- ========== TAB NAVIGATION ========== -->
+<div style="display: flex; gap: 0; margin-bottom: 2rem;">
+    <button id="tab-tasks" class="tab-btn tab-active" onclick="switchTab('tasks')">
+        📋 Current Tasks
+    </button>
+    <button id="tab-menu" class="tab-btn" onclick="switchTab('menu')">
+        🍳 Weekly Menu
+    </button>
 </div>
 
-<!-- ==================== WEEKLY COOKING MENU ==================== -->
-<h2 class="funky-title" style="font-size: 2rem; margin: 0 0 1.5rem; color: white; text-shadow: none;">🍳 Weekly Cooking Menu</h2>
+<!-- ========== SECTION: CURRENT TASKS ========== -->
+<div id="section-tasks">
 
-<div class="funky-card" style="background: white; overflow-x: auto;">
-    <table style="width: 100%; border-collapse: collapse; text-align: center;">
-        <thead>
-            <tr>
-                <th style="border: 3px solid black; padding: 10px; background: var(--tertiary-color); font-weight: bold;">Day</th>
-                <th style="border: 3px solid black; padding: 10px; background: #FF6B6B; color: white; font-weight: bold;">🍛 Lunch</th>
-                <th style="border: 3px solid black; padding: 10px; background: #4ECDC4; color: white; font-weight: bold;">🌙 Dinner</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for day in days %}
-            <tr>
-                <td style="border: 3px solid black; padding: 10px; font-weight: bold; background: #f9f9f9;">{{ day }}</td>
-                {% for meal in meals %}
-                {% set item = menu[day][meal] %}
-                <td style="border: 3px solid black; padding: 10px; {% if item and item.is_cooked %}background: #d4edda; text-decoration: line-through; color: #888;{% endif %}">
-                    {% if item and item.food_name %}
+    <div id="task-card-grid" class="chore-grid" style="margin-bottom: 3rem;">
+        {% for chore in chores %}
+        <div class="funky-card task-card" data-chore-id="{{ chore.id }}"
+            style="background-color: white; position: relative;">
+            <div
+                style="position: absolute; top: -10px; right: -10px; background: {{ chore.assigned_to.color }}; border: 3px solid black; padding: 5px 10px; font-weight: bold; transform: rotate(3deg);">
+                Up Next: {{ chore.assigned_to.name }}
+            </div>
+
+            <div style="border-bottom: 3px solid black; padding-bottom: 10px; margin-bottom: 10px;">
+                <h3 style="font-size: 1.5rem; margin-top: 0;">{{ chore.title }}</h3>
+                <span class="badge" style="background: black;">{{ chore.points }} XP</span>
+            </div>
+
+            <div class="rotation-visual">
+                <p
+                    style="font-size: 0.8rem; font-weight: bold; text-transform: uppercase; color: #666; margin-bottom: 0.5rem;">
+                    Rotation Order {% if session.get('is_admin') %}(Drag to Reorder){% endif %}:
+                </p>
+                <div id="sortable-{{ chore.id }}" class="sortable-list" data-chore-id="{{ chore.id }}">
+                    {% for p in chore.participants_association %}
+                    <div class="participant-item {% if p.user_id == chore.assigned_to_id %}active{% endif %}"
+                        data-user-id="{{ p.user_id }}"
+                        style="background-color: {{ p.user.color }}; border-color: black;">
+                        <span
+                            style="background: black; color: white; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; justify-content: center; align-items: center; font-size: 0.7rem; margin-right: 5px;">
+                            {{ loop.index }}
+                        </span>
+                        {{ p.user.name }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if session.get('is_admin') %}
+            <form action="{{ url_for('complete_chore', chore_id=chore.id) }}" method="POST" style="margin-top: 1.5rem;">
+                <button class="funky-btn"
+                    style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                    <span>Mark Done</span>
+                    <span>➜</span>
+                </button>
+            </form>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="funky-card">
+            <h3>No chores!</h3>
+            <p>You're all caught up. 🎉</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Admin: Add New Task & User Management -->
+    {% if session.get('is_admin') %}
+    <div class="funky-card" style="background-color: var(--secondary-color); border-width: 4px;">
+        <h2 style="margin: 0;">Add New Task</h2>
+        <p style="margin: 0;">Who's doing what?</p>
+        <form action="/add_chore" method="POST" style="margin-top: 1rem;">
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <input type="text" name="title" class="funky-input" placeholder="Task Name (e.g. Wash Dishes)" required
+                    style="flex: 2;">
+                <input type="number" name="points" class="funky-input" placeholder="Points" value="10"
+                    style="width: 100px; flex: 0 0 100px;">
+            </div>
+            <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Select Rotation
+                Participants:</label>
+            <div class="participant-grid">
+                {% for user in users %}
+                <label
+                    style="background-color: white; border: 2px solid black; padding: 5px; display: block; cursor: pointer;">
+                    <input type="checkbox" name="participants" value="{{ user.id }}">
+                    <span style="font-weight: bold; color: {{ user.color }};">{{ user.name }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            <button type="submit" class="funky-btn" style="margin-top: 1rem; background: black; color: white;">Add to
+                Rotation</button>
+        </form>
+    </div>
+
+    <details class="funky-card" style="background-color: #eee;">
+        <summary style="font-weight: bold; cursor: pointer; list-style: none;">+ Manage Household Members</summary>
+        <form action="/add_user" method="POST" style="margin-top: 1rem; display: flex; gap: 1rem;">
+            <input type="text" name="name" class="funky-input" placeholder="Name" required>
+            <input type="color" name="color" value="#FF6B6B"
+                style="height: 45px; width: 50px; border: 3px solid black; padding: 0;">
+            <button type="submit" class="funky-btn" style="background: black;">Add</button>
+        </form>
+    </details>
+    {% endif %}
+
+</div>
+
+<!-- ========== SECTION: WEEKLY MENU ========== -->
+<div id="section-menu" style="display: none;">
+
+    <div class="funky-card" style="background: white; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: center;">
+            <thead>
+                <tr>
+                    <th
+                        style="border: 3px solid black; padding: 10px; background: var(--tertiary-color); font-weight: bold;">
+                        Day</th>
+                    <th
+                        style="border: 3px solid black; padding: 10px; background: #FF6B6B; color: white; font-weight: bold;">
+                        🍛 Lunch</th>
+                    <th
+                        style="border: 3px solid black; padding: 10px; background: #4ECDC4; color: white; font-weight: bold;">
+                        🌙 Dinner</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for day in days %}
+                <tr>
+                    <td style="border: 3px solid black; padding: 10px; font-weight: bold; background: #f9f9f9;">{{ day
+                        }}</td>
+                    {% for meal in meals %}
+                    {% set item = menu[day][meal] %}
+                    <td
+                        style="border: 3px solid black; padding: 10px; {% if item and item.is_cooked %}background: #d4edda; text-decoration: line-through; color: #888;{% endif %}">
+                        {% if item and item.food_name %}
                         <span style="font-weight: bold;">{{ item.food_name }}</span>
                         {% if session.get('is_admin') and item %}
-                        <form action="{{ url_for('toggle_cooked', item_id=item.id) }}" method="POST" style="display: inline; margin-left: 5px;">
-                            <button type="submit" style="background: none; border: none; cursor: pointer; font-size: 1.1rem;" title="Toggle cooked">
+                        <form action="{{ url_for('toggle_cooked', item_id=item.id) }}" method="POST"
+                            style="display: inline; margin-left: 5px;">
+                            <button type="submit"
+                                style="background: none; border: none; cursor: pointer; font-size: 1.1rem;"
+                                title="Toggle cooked">
                                 {% if item.is_cooked %}✅{% else %}⬜{% endif %}
                             </button>
                         </form>
                         {% elif item and item.is_cooked %}
-                            ✅
+                        ✅
                         {% endif %}
-                    {% else %}
+                        {% else %}
                         <span style="color: #ccc;">—</span>
-                    {% endif %}
-                </td>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
                 {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<!-- Admin: Set Menu Form -->
-{% if session.get('is_admin') %}
-<details class="funky-card" style="background-color: #FF9F43; margin-top: 1rem;">
-    <summary style="font-weight: bold; cursor: pointer; list-style: none; color: black;">📝 Set Weekly Menu</summary>
-    <form action="/set_menu" method="POST" style="margin-top: 1rem;">
-        <table style="width: 100%; border-collapse: collapse;">
-            {% for day in days %}
-            <tr>
-                <td style="padding: 8px; font-weight: bold; border-bottom: 2px solid rgba(0,0,0,0.2);">{{ day }}</td>
-                <td style="padding: 8px; border-bottom: 2px solid rgba(0,0,0,0.2);">
-                    <input type="text" name="{{ day }}_Lunch" class="funky-input" placeholder="Lunch" 
-                           value="{{ menu[day]['Lunch'].food_name if menu[day]['Lunch'] else '' }}" style="margin: 0;">
-                </td>
-                <td style="padding: 8px; border-bottom: 2px solid rgba(0,0,0,0.2);">
-                    <input type="text" name="{{ day }}_Dinner" class="funky-input" placeholder="Dinner" 
-                           value="{{ menu[day]['Dinner'].food_name if menu[day]['Dinner'] else '' }}" style="margin: 0;">
-                </td>
-            </tr>
-            {% endfor %}
+            </tbody>
         </table>
-        <button type="submit" class="funky-btn" style="margin-top: 1rem; background: black; color: white; width: 100%;">Save Menu</button>
-    </form>
-</details>
-{% endif %}
-
-<!-- ==================== ADD NEW TASK (Admin Only) ==================== -->
-{% if session.get('is_admin') %}
-<div class="funky-card" style="background-color: var(--secondary-color); border-width: 4px; margin-top: 3rem;">
-    <div class="funky-header-small">
-        <h2 style="margin: 0;">Add New Task</h2>
-        <p style="margin: 0;">Who's doing what?</p>
     </div>
-    <form action="/add_chore" method="POST" style="margin-top: 1rem;">
-        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-            <input type="text" name="title" class="funky-input" placeholder="Task Name (e.g. Wash Dishes)" required style="flex: 2;">
-            <input type="number" name="points" class="funky-input" placeholder="Points" value="10" style="width: 100px; flex: 0 0 100px;">
-        </div>
 
-        <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Select Rotation Participants (Check in order):</label>
-        <div class="participant-grid">
-            {% for user in users %}
-            <label class="funky-checkbox-label" style="background-color: white; border: 2px solid black; padding: 5px; display: block; cursor: pointer;">
-                <input type="checkbox" name="participants" value="{{ user.id }}">
-                <span style="font-weight: bold; color: {{ user.color }};">{{ user.name }}</span>
-            </label>
-            {% endfor %}
-        </div>
+    {% if session.get('is_admin') %}
+    <details class="funky-card" style="background-color: #FF9F43; margin-top: 1rem;">
+        <summary style="font-weight: bold; cursor: pointer; list-style: none; color: black;">📝 Set Weekly Menu
+        </summary>
+        <form action="/set_menu" method="POST" style="margin-top: 1rem;">
+            <table style="width: 100%; border-collapse: collapse;">
+                {% for day in days %}
+                <tr>
+                    <td style="padding: 8px; font-weight: bold; border-bottom: 2px solid rgba(0,0,0,0.2);">{{ day }}
+                    </td>
+                    <td style="padding: 8px; border-bottom: 2px solid rgba(0,0,0,0.2);">
+                        <input type="text" name="{{ day }}_Lunch" class="funky-input" placeholder="Lunch"
+                            value="{{ menu[day]['Lunch'].food_name if menu[day]['Lunch'] else '' }}" style="margin: 0;">
+                    </td>
+                    <td style="padding: 8px; border-bottom: 2px solid rgba(0,0,0,0.2);">
+                        <input type="text" name="{{ day }}_Dinner" class="funky-input" placeholder="Dinner"
+                            value="{{ menu[day]['Dinner'].food_name if menu[day]['Dinner'] else '' }}"
+                            style="margin: 0;">
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            <button type="submit" class="funky-btn"
+                style="margin-top: 1rem; background: black; color: white; width: 100%;">Save Menu</button>
+        </form>
+    </details>
+    {% endif %}
 
-        <button type="submit" class="funky-btn" style="margin-top: 1rem; background: black; color: white;">Add to Rotation</button>
-    </form>
 </div>
 
-<details class="funky-card" style="background-color: #eee;">
-    <summary style="font-weight: bold; cursor: pointer; list-style: none;">+ Manage Household Members</summary>
-    <form action="/add_user" method="POST" style="margin-top: 1rem; display: flex; gap: 1rem;">
-        <input type="text" name="name" class="funky-input" placeholder="Name" required>
-        <input type="color" name="color" value="#FF6B6B" style="height: 45px; width: 50px; border: 3px solid black; padding: 0;">
-        <button type="submit" class="funky-btn" style="background: black;">Add</button>
-    </form>
-</details>
-{% endif %}
-
+<!-- ========== SCRIPTS ========== -->
 <script>
-    // Scroll Persistence Logic
-    document.addEventListener("DOMContentLoaded", function (event) {
+    // Tab Switching
+    function switchTab(tab) {
+        var tasksSection = document.getElementById('section-tasks');
+        var menuSection = document.getElementById('section-menu');
+        var tabTasks = document.getElementById('tab-tasks');
+        var tabMenu = document.getElementById('tab-menu');
+
+        if (tab === 'tasks') {
+            tasksSection.style.display = 'block';
+            menuSection.style.display = 'none';
+            tabTasks.classList.add('tab-active');
+            tabMenu.classList.remove('tab-active');
+        } else {
+            tasksSection.style.display = 'none';
+            menuSection.style.display = 'block';
+            tabMenu.classList.add('tab-active');
+            tabTasks.classList.remove('tab-active');
+        }
+        localStorage.setItem('activeTab', tab);
+    }
+
+    // Restore active tab on load
+    document.addEventListener("DOMContentLoaded", function () {
+        var savedTab = localStorage.getItem('activeTab') || 'tasks';
+        switchTab(savedTab);
+
+        // Scroll persistence
         var scrollpos = localStorage.getItem('scrollpos');
         if (scrollpos) window.scrollTo(0, scrollpos);
     });
@@ -167,40 +229,91 @@
         localStorage.setItem('scrollpos', window.scrollY);
     };
 
-    // SortableJS Logic (Only if Admin)
+    // SortableJS: Participant reordering within a card (Admin)
     {% if session.get('is_admin') %}
     document.addEventListener('DOMContentLoaded', function () {
+        // Participant lists
         var lists = document.querySelectorAll('.sortable-list');
         lists.forEach(function (list) {
             new Sortable(list, {
                 animation: 150,
                 onEnd: function (evt) {
-                    var itemEl = evt.item;
-                    var listEl = itemEl.parentElement;
+                    var listEl = evt.item.parentElement;
                     var choreId = listEl.getAttribute('data-chore-id');
-
                     var userIds = Array.from(listEl.children).map(function (child) {
                         return child.getAttribute('data-user-id');
                     });
-
                     fetch('/reorder_chore/' + choreId, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ user_ids: userIds }),
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            console.log('Order updated:', data);
-                            location.reload();
-                        });
+                    }).then(r => r.json()).then(d => { location.reload(); });
                 }
             });
         });
+
+        // Task card grid reordering
+        var grid = document.getElementById('task-card-grid');
+        if (grid) {
+            new Sortable(grid, {
+                animation: 200,
+                handle: '.task-card',
+                draggable: '.task-card',
+                ghostClass: 'sortable-ghost-card',
+                onEnd: function (evt) {
+                    var cards = Array.from(grid.querySelectorAll('.task-card'));
+                    var choreIds = cards.map(function (card) {
+                        return card.getAttribute('data-chore-id');
+                    });
+                    fetch('/reorder_tasks', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chore_ids: choreIds }),
+                    }).then(r => r.json()).then(d => {
+                        console.log('Tasks reordered:', d);
+                    });
+                }
+            });
+        }
     });
     {% endif %}
 </script>
 
+<!-- ========== STYLES ========== -->
 <style>
+    /* Tab Buttons */
+    .tab-btn {
+        flex: 1;
+        padding: 15px 20px;
+        font-family: inherit;
+        font-size: 1.1rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: -1px;
+        border: 3px solid black;
+        cursor: pointer;
+        transition: all 0.15s;
+        background: #333;
+        color: #aaa;
+    }
+
+    .tab-btn:first-child {
+        border-right: none;
+    }
+
+    .tab-active {
+        background: var(--tertiary-color) !important;
+        color: black !important;
+        box-shadow: 0 4px 0px black;
+        transform: translateY(-2px);
+    }
+
+    .tab-btn:hover:not(.tab-active) {
+        background: #444;
+        color: white;
+    }
+
+    /* Sortable lists (participants) */
     .sortable-list {
         display: flex;
         gap: 10px;
@@ -216,20 +329,43 @@
         padding: 5px 10px;
         border: 2px solid black;
         font-weight: bold;
-        {% if session.get('is_admin') %}cursor: grab;{% else %}cursor: default;{% endif %}
+
+            {
+            % if session.get('is_admin') %
+        }
+
+        cursor: grab;
+
+            {
+            % else %
+        }
+
+        cursor: default;
+
+            {
+            % endif %
+        }
+
         user-select: none;
         background: white;
-        transition: transform 0.1s, box-shadow 0.1s;
+        transition: transform 0.1s,
+        box-shadow 0.1s;
         display: flex;
         align-items: center;
     }
 
-    {% if session.get('is_admin') %}
+        {
+        % if session.get('is_admin') %
+    }
+
     .participant-item:active {
         cursor: grabbing;
         transform: scale(1.05);
     }
-    {% endif %}
+
+        {
+        % endif %
+    }
 
     .participant-item.active {
         border-width: 3px;
@@ -242,6 +378,28 @@
     .sortable-ghost {
         opacity: 0.4;
         background: #ccc;
+    }
+
+    /* Task card drag ghost */
+    .sortable-ghost-card {
+        opacity: 0.3;
+        border: 3px dashed var(--accent-color) !important;
+    }
+
+        {
+        % if session.get('is_admin') %
+    }
+
+    .task-card {
+        cursor: grab;
+    }
+
+    .task-card:active {
+        cursor: grabbing;
+    }
+
+        {
+        % endif %
     }
 </style>
 
