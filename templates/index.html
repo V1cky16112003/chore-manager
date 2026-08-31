@@ -32,10 +32,29 @@
             </div>
 
             <div class="rotation-visual">
-                <p
-                    style="font-size: 0.8rem; font-weight: bold; text-transform: uppercase; color: #666; margin-bottom: 0.5rem;">
-                    Rotation Order {% if session.get('is_admin') %}(Drag to Reorder){% endif %}:
-                </p>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <p
+                        style="font-size: 0.8rem; font-weight: bold; text-transform: uppercase; color: #666; margin: 0;">
+                        Rotation Order {% if session.get('is_admin') %}(Drag to Reorder){% endif %}:
+                    </p>
+                    {% if session.get('is_admin') %}
+                    <div style="position: relative; display: inline-block;">
+                        <button type="button" onclick="toggleAddParticipant({{ chore.id }})" style="background: black; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 1.2rem; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center;">+</button>
+                        <div id="dropdown-{{ chore.id }}" style="display: none; position: absolute; top: 30px; right: 0; background: white; border: 2px solid black; border-radius: 4px; min-width: 150px; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                            {% set current_user_ids = chore.participants|map(attribute='id')|list %}
+                            {% for user in users %}
+                                {% if user.id not in current_user_ids %}
+                                <form action="{{ url_for('add_participant', chore_id=chore.id, user_id=user.id) }}" method="POST" style="margin: 0;">
+                                    <button type="submit" style="width: 100%; text-align: left; background: none; border: none; padding: 8px 10px; cursor: pointer; display: block; border-bottom: 1px solid #eee;">
+                                        <span style="color: {{ user.color }}; font-weight: bold;">+ {{ user.name }}</span>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
                 <div id="sortable-{{ chore.id }}" class="sortable-list" data-chore-id="{{ chore.id }}">
                     {% for p in chore.participants_association %}
                     <div class="participant-item {% if p.user_id == chore.assigned_to_id %}active{% endif %}"
@@ -226,6 +245,22 @@
 
 <!-- ========== SCRIPTS ========== -->
 <script>
+    // Toggle Add Participant Dropdown
+    function toggleAddParticipant(choreId) {
+        const dropdown = document.getElementById('dropdown-' + choreId);
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const dropdowns = document.querySelectorAll('[id^="dropdown-"]');
+        dropdowns.forEach(dropdown => {
+            if (!dropdown.contains(event.target) && event.target.closest('[onclick*="toggleAddParticipant"]') === null) {
+                dropdown.style.display = 'none';
+            }
+        });
+    });
+
     // Tab Switching
     function switchTab(tab) {
         var tasksSection = document.getElementById('section-tasks');

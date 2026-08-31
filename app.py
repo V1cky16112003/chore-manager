@@ -183,6 +183,23 @@ def remove_participant(chore_id, user_id):
 
     return redirect(url_for("index"))
 
+@app.route("/add_participant/<int:chore_id>/<int:user_id>", methods=["POST"])
+def add_participant(chore_id, user_id):
+    if not session.get('is_admin'):
+        return redirect(url_for("login_page"))
+
+    chore = Chore.query.get_or_404(chore_id)
+    user = User.query.get_or_404(user_id)
+
+    existing = ChoreParticipant.query.filter_by(chore_id=chore_id, user_id=user_id).first()
+    if not existing:
+        max_order = db.session.query(db.func.max(ChoreParticipant.rotation_order)).filter_by(chore_id=chore_id).scalar() or -1
+        participant = ChoreParticipant(chore_id=chore_id, user_id=user_id, rotation_order=max_order + 1)
+        db.session.add(participant)
+        db.session.commit()
+
+    return redirect(url_for("index"))
+
 @app.route("/complete/<int:chore_id>", methods=["POST"])
 def complete_chore(chore_id):
     if not session.get('is_admin'):
