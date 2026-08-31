@@ -97,12 +97,34 @@ def logout():
 def add_user():
     if not session.get('is_admin'):
         return redirect(url_for("login_page"))
-        
+
     name = request.form.get("name")
     color = request.form.get("color", "#000000")
     if name:
         db.session.add(User(name=name, color=color))
         db.session.commit()
+    return redirect(url_for("index"))
+
+@app.route("/delete_user/<int:user_id>", methods=["POST"])
+def delete_user(user_id):
+    if not session.get('is_admin'):
+        return redirect(url_for("login_page"))
+
+    user = User.query.get_or_404(user_id)
+
+    # Remove user from all chore rotations
+    ChoreParticipant.query.filter_by(user_id=user_id).delete()
+
+    # For chores where this user is currently assigned, assign to first remaining participant
+    chores = Chore.query.filter_by(assigned_to_id=user_id).all()
+    for chore in chores:
+        if chore.participants_association:
+            chore.assigned_to = chore.participants_association[0].user
+        else:
+            chore.assigned_to = None
+
+    db.session.delete(user)
+    db.session.commit()
     return redirect(url_for("index"))
 
 @app.route("/add_chore", methods=["POST"])
@@ -135,6 +157,30 @@ def add_chore():
             
         db.session.commit()
     
+    return redirect(url_for("index"))
+
+@app.route("/delete_chore/<int:chore_id>", methods=["POST"])
+def delete_chore(chore_id):
+    if not session.get('is_admin'):
+        return redirect(url_for("login_page"))
+
+    chore = Chore.query.get_or_404(chore_id)
+    db.session.delete(chore)
+    db.session.commit()
+    return redirect(url_for("index"))
+
+@app.route("/remove_participant/<int:chore_id>/<int:user_id>", methods=["POST"])
+def remove_participant(chore_id, user_id):
+    if not session.get('is_admin'):
+        return redirect(url_for("login_page"))
+
+    chore = Chore.query.get_or_404(chore_id)
+    participant = ChoreParticipant.query.filter_by(chore_id=chore_id, user_id=user_id).first()
+
+    if participant:
+        db.session.delete(participant)
+        db.session.commit()
+
     return redirect(url_for("index"))
 
 @app.route("/complete/<int:chore_id>", methods=["POST"])

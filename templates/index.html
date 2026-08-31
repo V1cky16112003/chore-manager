@@ -40,25 +40,39 @@
                     {% for p in chore.participants_association %}
                     <div class="participant-item {% if p.user_id == chore.assigned_to_id %}active{% endif %}"
                         data-user-id="{{ p.user_id }}"
-                        style="background-color: {{ p.user.color }}; border-color: black;">
-                        <span
-                            style="background: black; color: white; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; justify-content: center; align-items: center; font-size: 0.7rem; margin-right: 5px;">
-                            {{ loop.index }}
+                        style="background-color: {{ p.user.color }}; border-color: black; display: flex; align-items: center; justify-content: space-between; padding-right: 5px;">
+                        <span style="display: flex; align-items: center;">
+                            <span
+                                style="background: black; color: white; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; justify-content: center; align-items: center; font-size: 0.7rem; margin-right: 5px;">
+                                {{ loop.index }}
+                            </span>
+                            {{ p.user.name }}
                         </span>
-                        {{ p.user.name }}
+                        {% if session.get('is_admin') %}
+                        <form action="{{ url_for('remove_participant', chore_id=chore.id, user_id=p.user_id) }}" method="POST" style="display: inline; margin-left: 5px;" onsubmit="return confirm('Remove this member from rotation?');">
+                            <button type="submit" style="background: none; border: none; cursor: pointer; font-size: 0.9rem; padding: 0; margin: 0;">✕</button>
+                        </form>
+                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
             </div>
 
             {% if session.get('is_admin') %}
-            <form action="{{ url_for('complete_chore', chore_id=chore.id) }}" method="POST" style="margin-top: 1.5rem;">
-                <button class="funky-btn"
-                    style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
-                    <span>Mark Done</span>
-                    <span>➜</span>
-                </button>
-            </form>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <form action="{{ url_for('complete_chore', chore_id=chore.id) }}" method="POST" style="flex: 1;">
+                    <button class="funky-btn"
+                        style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                        <span>Mark Done</span>
+                        <span>➜</span>
+                    </button>
+                </form>
+                <form action="{{ url_for('delete_chore', chore_id=chore.id) }}" method="POST" style="flex: 0 0 auto;" onsubmit="return confirm('Delete this task?');">
+                    <button class="funky-btn" style="background: #FF6B6B; color: white;">
+                        🗑️ Delete
+                    </button>
+                </form>
+            </div>
             {% endif %}
         </div>
         {% else %}
@@ -99,6 +113,24 @@
 
     <details class="funky-card" style="background-color: #eee;">
         <summary style="font-weight: bold; cursor: pointer; list-style: none;">+ Manage Household Members</summary>
+
+        <!-- Existing Members List -->
+        <div style="margin-top: 1rem; margin-bottom: 1.5rem;">
+            <h3 style="margin-top: 0; margin-bottom: 1rem;">Current Members:</h3>
+            <div style="display: grid; gap: 0.5rem;">
+                {% for user in users %}
+                <div style="display: flex; align-items: center; gap: 1rem; background: white; padding: 10px; border: 2px solid black;">
+                    <div style="width: 30px; height: 30px; background-color: {{ user.color }}; border: 2px solid black; border-radius: 4px;"></div>
+                    <span style="font-weight: bold; flex: 1;">{{ user.name }}</span>
+                    <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Remove {{ user.name }} from the household? They will be removed from all chores.');">
+                        <button type="submit" class="funky-btn" style="background: #FF6B6B; color: white; padding: 5px 10px; font-size: 0.9rem;">Remove</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Add New Member -->
         <form action="/add_user" method="POST" style="margin-top: 1rem; display: flex; gap: 1rem;">
             <input type="text" name="name" class="funky-input" placeholder="Name" required>
             <input type="color" name="color" value="#FF6B6B"
