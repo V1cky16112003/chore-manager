@@ -12,6 +12,7 @@ import os
 from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -21,7 +22,20 @@ from models import Chore, User, ChoreParticipant, db
 
 MCP_AUTH_TOKEN = os.environ.get("MCP_AUTH_TOKEN")
 
-mcp = FastMCP("kensal-house-mama", stateless_http=True)
+# The MCP SDK's DNS-rebinding protection only allows "localhost" by default,
+# which blocks every request once deployed. Allow the real production host
+# (set MCP_ALLOWED_HOSTS to a comma-separated list to override/extend).
+_default_hosts = "chore-manager-six.vercel.app,localhost,127.0.0.1"
+allowed_hosts = [h.strip() for h in os.environ.get("MCP_ALLOWED_HOSTS", _default_hosts).split(",")]
+
+mcp = FastMCP(
+    "kensal-house-mama",
+    stateless_http=True,
+    transport_security=TransportSecuritySettings(
+        allowed_hosts=allowed_hosts,
+        allowed_origins=["*"],
+    ),
+)
 
 
 @mcp.tool()
