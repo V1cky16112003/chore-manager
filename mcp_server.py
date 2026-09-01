@@ -227,7 +227,13 @@ def remove_chore(chore_title: str) -> dict:
 
 
 class BearerAuthMiddleware(BaseHTTPMiddleware):
-    """Rejects requests without a matching `Authorization: Bearer <token>` header.
+    """Requires the configured token via `Authorization: Bearer <token>` header
+    OR a `?token=<token>` query parameter.
+
+    The query-param fallback exists because Claude's mobile/web custom
+    connector UI only supports OAuth, not a raw bearer-token field - so the
+    token is embedded directly in the connector URL instead:
+    https://<your-domain>/mcp?token=<token>
 
     Skipped entirely if MCP_AUTH_TOKEN is unset (local dev convenience) - always
     set it in production so the server isn't open to the public internet.
@@ -236,8 +242,8 @@ class BearerAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         if MCP_AUTH_TOKEN:
             auth_header = request.headers.get("authorization", "")
-            expected = f"Bearer {MCP_AUTH_TOKEN}"
-            if auth_header != expected:
+            token_param = request.query_params.get("token", "")
+            if auth_header != f"Bearer {MCP_AUTH_TOKEN}" and token_param != MCP_AUTH_TOKEN:
                 return JSONResponse({"error": "Unauthorized"}, status_code=401)
         return await call_next(request)
 
