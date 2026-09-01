@@ -21,7 +21,7 @@ from models import Chore, User, ChoreParticipant, db
 
 MCP_AUTH_TOKEN = os.environ.get("MCP_AUTH_TOKEN")
 
-mcp = FastMCP("kensal-house-mama")
+mcp = FastMCP("kensal-house-mama", stateless_http=True)
 
 
 @mcp.tool()
